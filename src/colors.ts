@@ -1,5 +1,5 @@
 const Colors = {
-  mainBackground: "#000",
+  mainBackground: "#091032",
   backgroundSec: "#262626",
   text: "#eee",
 };
