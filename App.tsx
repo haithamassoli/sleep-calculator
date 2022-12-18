@@ -11,6 +11,8 @@ import {
   View,
   Animated,
   ScrollView,
+  Modal,
+  LayoutAnimation,
 } from "react-native";
 import * as Notifications from "expo-notifications";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,6 +20,9 @@ import MoonIcon from "./assets/icons/moonIcon";
 import Colors from "./src/colors";
 import { reloadAsync } from "expo-updates";
 import ArMoonIcon from "./assets/icons/arMoonIcon";
+import BellIcon from "./assets/icons/bell";
+import WorldIcon from "./assets/icons/world";
+import CloseIcon from "./assets/icons/closeIcon";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -59,7 +64,11 @@ export default function App() {
   const [minute, setMinute] = useState(30);
   const [period, setPeriod] = useState(0);
   const [date, setDate] = useState(new Date());
-  const [isResult, setIsResult] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [results, setResults] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalVisibleNoti, setIsModalVisibleNoti] = useState(false);
+
   const Periods = [
     "",
     lang === "ar" ? "صباحًا" : "AM",
@@ -113,33 +122,36 @@ If you go to sleep right now, you should try to wake up at one of the following 
   // console.log(Hours[hour + 1]);
   // console.log(Minutes[minute + 1]);
   // console.log(period);
-  const toggleLang = useCallback(async () => {
-    if (lang === "en") {
-      if (!I18nManager.isRTL) {
-        try {
-          I18nManager.allowRTL(true);
-          I18nManager.forceRTL(true);
-          await AsyncStorage.setItem("lang", "ar");
-          setLang("ar");
-          await reloadAsync();
-        } catch (error) {
-          console.log(error);
+  const toggleLang = useCallback(
+    async (language: "ar" | "en") => {
+      if (language === "en") {
+        if (I18nManager.isRTL) {
+          try {
+            I18nManager.allowRTL(false);
+            I18nManager.forceRTL(false);
+            await AsyncStorage.setItem("lang", language);
+            setLang(language);
+            await reloadAsync();
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } else {
+        if (!I18nManager.isRTL) {
+          try {
+            I18nManager.allowRTL(true);
+            I18nManager.forceRTL(true);
+            await AsyncStorage.setItem("lang", language);
+            setLang(language);
+            await reloadAsync();
+          } catch (error) {
+            console.log(error);
+          }
         }
       }
-    } else {
-      if (I18nManager.isRTL) {
-        try {
-          I18nManager.allowRTL(false);
-          I18nManager.forceRTL(false);
-          await AsyncStorage.setItem("lang", "en");
-          setLang("en");
-          await reloadAsync();
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    }
-  }, [lang]);
+    },
+    [lang]
+  );
 
   if (!fontsLoaded) {
     return null;
@@ -152,35 +164,181 @@ If you go to sleep right now, you should try to wake up at one of the following 
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-between",
             width: "100%",
             paddingHorizontal: 16,
             paddingVertical: 16,
+            justifyContent: "flex-end",
           }}
         >
-          <Text
-            style={{
-              fontFamily: "TajawalMedium",
-              fontSize: 20,
-              color: Colors.text,
+          <TouchableOpacity
+            style={{ paddingHorizontal: 12 }}
+            onPress={() => {
+              LayoutAnimation.configureNext(
+                LayoutAnimation.Presets.easeInEaseOut
+              );
+              setIsModalVisibleNoti(true);
             }}
           >
-            {lang === "en" ? "Home" : "الرئيسية"}
-          </Text>
-          <TouchableOpacity onPress={toggleLang}>
-            <Text
-              style={{
-                fontFamily: "TajawalMedium",
-                fontSize: 20,
-                color: Colors.text,
-              }}
-            >
-              {lang === "en" ? "Notifications" : "الإشعارات"}
-            </Text>
+            <BellIcon />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              LayoutAnimation.configureNext(
+                LayoutAnimation.Presets.easeInEaseOut
+              );
+              setIsModalVisible(true);
+            }}
+          >
+            <WorldIcon />
           </TouchableOpacity>
         </View>
+
+        <Modal
+          visible={isModalVisible}
+          style={{
+            flex: 1,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: Colors.mainBackground,
+              padding: 16,
+              height: "100%",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "TajawalMedium",
+                  fontSize: 32,
+                  color: Colors.text,
+                }}
+              >
+                {lang === "en" ? "Language" : "اللغة"}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  LayoutAnimation.configureNext(
+                    LayoutAnimation.Presets.easeInEaseOut
+                  );
+                  setIsModalVisible(false);
+                }}
+              >
+                <CloseIcon />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={{ paddingTop: 32 }}
+              onPress={() => toggleLang("en")}
+            >
+              <Text
+                style={{
+                  fontFamily: "TajawalMedium",
+                  fontSize: 20,
+                  color: Colors.text,
+                  textAlign: "left",
+                }}
+              >
+                English
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ paddingTop: 8 }}
+              onPress={() => toggleLang("ar")}
+            >
+              <Text
+                style={{
+                  fontFamily: "TajawalMedium",
+                  fontSize: 20,
+                  color: Colors.text,
+                  textAlign: "left",
+                }}
+              >
+                العربية
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+        <Modal
+          visible={isModalVisibleNoti}
+          style={{
+            flex: 1,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: Colors.mainBackground,
+              padding: 16,
+              height: "100%",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "TajawalMedium",
+                  fontSize: 32,
+                  color: Colors.text,
+                }}
+              >
+                {lang === "en" ? "Notifications" : "الإشعارات"}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  LayoutAnimation.configureNext(
+                    LayoutAnimation.Presets.easeInEaseOut
+                  );
+                  setIsModalVisibleNoti(false);
+                }}
+              >
+                <CloseIcon />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={{ paddingTop: 32 }}
+              onPress={() => toggleLang("en")}
+            >
+              <Text
+                style={{
+                  fontFamily: "TajawalMedium",
+                  fontSize: 20,
+                  color: Colors.text,
+                  textAlign: "left",
+                }}
+              >
+                English
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ paddingTop: 8 }}
+              onPress={() => toggleLang("ar")}
+            >
+              <Text
+                style={{
+                  fontFamily: "TajawalMedium",
+                  fontSize: 20,
+                  color: Colors.text,
+                }}
+              >
+                العربية
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+
         {lang === "en" ? <MoonIcon /> : <ArMoonIcon />}
-        {!isResult ? (
+        {!showResult ? (
           <View style={{ flex: 1, paddingTop: 72 }}>
             <Text
               style={[
