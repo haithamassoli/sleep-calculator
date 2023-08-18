@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sleep Calculator",
     "slug": "SleepCalculator",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "orientation": "portrait",
     "jsEngine": "hermes",
     "icon": "./assets/icon.png",
@@ -20,15 +20,12 @@
       "supportsTablet": true
     },
     "android": {
-      "versionCode": 2,
+      "versionCode": 3,
       "package": "com.haithamassoli.SleepCalculator",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#091032"
       }
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       [
