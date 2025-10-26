@@ -19,7 +19,11 @@ import {
   Switch,
 } from "react-native";
 import * as Notifications from "expo-notifications";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import MoonIcon from "./assets/icons/moonIcon";
 import Colors from "./src/colors";
 import { reloadAsync } from "expo-updates";
@@ -71,6 +75,24 @@ Minutes.push("");
 const ITEM_SIZE = 38;
 
 export default function App() {
+  return (
+    <SafeAreaProvider
+      style={{ flex: 1 }}
+      initialMetrics={{
+        insets: {
+          bottom: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+        },
+      }}
+    >
+      <AppContent />
+    </SafeAreaProvider>
+  );
+}
+
+const AppContent = () => {
   const [page, setPage] = useState("home");
   const [lang, setLang] = useState("ar");
   const [hour, setHour] = useState(5);
@@ -83,6 +105,7 @@ export default function App() {
   const [alarms, setAlarms] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleNoti, setIsModalVisibleNoti] = useState(false);
+  const { top, bottom } = useSafeAreaInsets();
 
   const Periods = [
     "",
@@ -222,7 +245,7 @@ To wake up refreshed at ${Hours[hour + 1]}:${Minutes[minute + 1]} ${
   };
   // console.log(Hours[hour + 1]);
   // console.log(Minutes[minute + 1]);
-  console.log(results);
+  // console.log(results);
   const toggleLang = useCallback(
     async (language: "ar" | "en") => {
       if (language === "en") {
@@ -257,9 +280,8 @@ To wake up refreshed at ${Hours[hour + 1]}:${Minutes[minute + 1]} ${
   if (!fontsLoaded) {
     return null;
   }
-
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1, paddingTop: top, paddingBottom: bottom }}>
       <StatusBar style={"light"} backgroundColor={Colors.mainBackground} />
       <ScrollView
         contentContainerStyle={{
@@ -305,6 +327,8 @@ To wake up refreshed at ${Hours[hour + 1]}:${Minutes[minute + 1]} ${
             visible={isModalVisible}
             style={{
               flex: 1,
+              paddingTop: top,
+              paddingBottom: bottom,
             }}
           >
             <View
@@ -1062,9 +1086,9 @@ To wake up refreshed at ${Hours[hour + 1]}:${Minutes[minute + 1]} ${
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
